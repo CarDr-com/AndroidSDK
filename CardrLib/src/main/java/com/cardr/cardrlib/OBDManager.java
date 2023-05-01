@@ -3,10 +3,25 @@ package com.cardr.cardrlib;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.CountDownTimer;
 import android.util.Log;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
+
+import org.json.JSONObject;
+
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 
 import voyomotive.voyolibrary.BasicIdentifier;
@@ -25,7 +40,7 @@ import voyomotive.voyolibrary.VoyoErrorCallback;
 import voyomotive.voyolibrary.VoyoScanPro;
 import voyomotive.voyolibrary.VoyoUserAccount;
 
-public class OBDManager {
+public class OBDManager  {
     private VoyoAPI cdAPI;
     Context context;
     private VoyoDevice carDrDevice = null;
@@ -117,7 +132,7 @@ public class OBDManager {
         cdAPI.onStartFromService(null);
     }
 
-    public void stopVoyo(){
+    public void disconnetOBD(){
         if (countDownTimer != null) {
             countDownTimer.cancel();
         }
@@ -378,6 +393,88 @@ public class OBDManager {
 //
 //                    }
 //                }, 3000);
+    }
+
+
+    public  void getPCF(String token, String key, String vin, List<String> dtc,CarDrCallbacks carDrCallbacks){
+        String url = Constant.PCF_API+"vin="+vin+"&dtcCode="+getFormatedDTC(dtc);
+//        AndroidNetworking.get(url)
+//                .addHeaders("access_token", token)
+//                .addHeaders("server_key", key)
+//                .setTag("PCF_API")
+//                .setPriority(Priority.HIGH)
+//                .build()
+//                .getAsJSONObject(new JSONObjectRequestListener() {
+//                    @Override
+//                    public void onResponse(JSONObject response) {
+//                        if(carDrCallbacks != null){
+//                            carDrCallbacks.getPCFResponse(response,"Success");
+//                        }
+//                    }
+//
+//                    @Override
+//                    public void onError(ANError anError) {
+//                        carDrCallbacks.getPCFResponse(null, anError.getLocalizedMessage());
+//
+//                    }
+//                });
+
+
+        RequestQueue queue = Volley.newRequestQueue(context);
+        StringRequest getRequest = new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>()
+                {
+                    @Override
+                    public void onResponse(String response) {
+                        // response
+                        try{
+                            JSONObject jsonObject = new JSONObject(response);
+                            if(carDrCallbacks != null){
+                                carDrCallbacks.getPCFResponse(jsonObject,"Success","");
+                            }
+                        }catch (Exception ex){
+                            ex.printStackTrace();
+                        }
+                    }
+                },
+                new Response.ErrorListener()
+                {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // TODO Auto-generated method stub
+                        Log.d("ERROR","error => "+error.toString());
+                        if(carDrCallbacks != null){
+                            carDrCallbacks.getPCFResponse(null,"Success",error.toString());
+                        }
+                    }
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String>  params = new HashMap<String, String>();
+                params.put("access_token", token);
+                params.put("server_key", key);
+
+                return params;
+            }
+        };
+        queue.add(getRequest);
+    }
+
+    private  String getFormatedDTC(List<String> dtc){
+        String dtcstr = "";
+        if(dtc != null){
+            for (int i = 0; i <dtc.size() ; i++) {
+                dtcstr = dtcstr + ";" + dtc.get(i);
+
+            }
+        }
+        if(!dtcstr.isEmpty()){
+            return  dtcstr.substring(1);
+        }else{
+            return dtcstr;
+        }
+
     }
 
 }
