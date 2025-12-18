@@ -1,0 +1,127 @@
+package com.cardr.obdiqandroidsdkapp
+
+import android.Manifest
+import android.content.Context
+import android.os.Build
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import com.androidisland.ezpermission.EzPermission
+import com.cardr.cardrandroidsdk.ConnectionListner
+import com.cardr.cardrandroidsdk.ConnectionManager
+import com.cardr.cardrandroidsdk.DTCResponseModel
+import com.cardr.obdiqandroidsdk.VehicleEntries
+import com.cardr.obdiqandroidsdkapp.ui.theme.CarDrAndroidSDKTheme
+import com.repairclub.repaircludsdk.models.DeviceItem
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        proceedWithPermissionsCheck(this)
+
+        setContent {
+            CarDrAndroidSDKTheme {
+                // A surface container using the 'background' color from the theme
+//                Surface(
+//                    modifier = Modifier.fillMaxSize(),
+//                    color = MaterialTheme.colorScheme.background
+//                ) {
+//                    Greeting("Android")
+//                }
+                proceedWithPermissionsCheck(LocalContext.current)
+            }
+        }
+    }
+}
+
+private fun proceedWithPermissionsCheck(
+    context: Context
+) {
+    val bluetoothPermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        arrayOf(
+            Manifest.permission.BLUETOOTH_SCAN,
+            Manifest.permission.BLUETOOTH_CONNECT,
+            Manifest.permission.BLUETOOTH_ADVERTISE,
+        )
+    } else {
+        arrayOf()
+    }
+
+    EzPermission.with(context)
+        .permissions(*bluetoothPermissions)
+        .request { granted, denied, permanentlyDenied ->
+            CoroutineScope(Dispatchers.Main).launch {
+                if (granted.size == bluetoothPermissions.size) {
+                    val cnn = ConnectionManager(context)
+                    cnn.initialize(context,object : ConnectionListner{
+                        override fun didDevicesFetch(foundedDevices: List<DeviceItem>?) {
+                            TODO("Not yet implemented")
+                        }
+
+                        override fun didCheckScanStatus(status: String) {
+                            TODO("Not yet implemented")
+                        }
+
+                        override fun didFetchVehicalInfo(vehicleEntry: VehicleEntries) {
+                            TODO("Not yet implemented")
+                        }
+
+                        override fun didFetchMil(mil: Boolean) {
+                            TODO("Not yet implemented")
+                        }
+
+                        override fun isReadyForScan(status: Boolean, isGenric: Boolean) {
+                            TODO("Not yet implemented")
+                        }
+
+                        override fun didUpdateProgress(progressStatus: String, percent: String) {
+                            TODO("Not yet implemented")
+                        }
+
+                        override fun didReceivedCode(model: List<DTCResponseModel>?) {
+                            TODO("Not yet implemented")
+                        }
+
+                        override fun didReceivedRepairCost(jsonString: String) {
+                            TODO("Not yet implemented")
+                        }
+
+                        override fun didScanForDevice(startScan: Boolean) {
+                            TODO("Not yet implemented")
+                        }
+
+                        override fun didReadyForRepairInfo(isReady: Boolean) {
+                            TODO("Not yet implemented")
+                        }
+
+                        override fun didReceiveRepairCost(result: Map<String, Any>?) {
+                            TODO("Not yet implemented")
+                        }
+
+                    })
+                }
+                if (denied.isNotEmpty() || permanentlyDenied.isNotEmpty()) {
+
+                }
+            }
+        }
+}
+
+@Composable
+fun Greeting(name: String, modifier: Modifier = Modifier) {
+//    Text(
+//        text = "Hello $name!",
+//        modifier = modifier
+//    )
+}
+
+@Composable
+fun GreetingPreview() {
+
+}
