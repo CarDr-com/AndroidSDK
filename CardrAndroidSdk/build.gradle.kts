@@ -57,3 +57,17 @@ dependencies {
     api(libs.repairclubandroidsdk)
 
 }
+
+publishing {
+    publications {
+        create<MavenPublication>("release") {
+            groupId = "Cardr-com" // Replace with your GitHub username
+            artifactId = "OBDIQAndroidSdk" // Library name
+            version = "1.0.6"// Ensure this matches your Git tag
+
+            afterEvaluate {
+                from(components["release"]) // Use the existing release component, do not manually add the AAR
+            }
+        }
+    }
+}
